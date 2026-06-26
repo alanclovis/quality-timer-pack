@@ -119,10 +119,10 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
     <div class="timer-display" id="timerDisplay">00:00:00</div>
     <div class="controls">
       <button class="btn btn-primary" id="btnStart" onclick="startTimer()" disabled>
-        <i class="ti ti-player-play"></i> iniciar <span class="kbd">space ↑</span>
+        <i class="ti ti-player-play"></i> iniciar <span class="kbd">space</span>
       </button>
       <button class="btn btn-danger" id="btnStop" onclick="stopTimer()" disabled>
-        <i class="ti ti-player-pause"></i> parar e registrar <span class="kbd">space ↓</span>
+        <i class="ti ti-player-pause"></i> parar e registrar <span class="kbd">space</span>
       </button>
       <button class="btn btn-ghost" id="btnCancel" onclick="cancelTimer()" disabled>
         cancelar <span class="kbd">esc</span>
@@ -264,7 +264,6 @@ let elapsed = 0;
 let logs = JSON.parse(localStorage.getItem(KEY_LOGS) || '[]');
 let charts = {};
 let currentTab = 'fila';
-let spaceHeld = false;
 
 function getSlot(d) {
   const h = d.getHours(), m = d.getMinutes();
