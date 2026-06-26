@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quality Timer (pack)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f11;--surface:#18181c;--surface2:#212127;
+  --border:#2e2e38;--border2:#3d3d4d;
+  --text:#e8e8f0;--muted:#8888a0;--hint:#55556a;
+  --purple:#7b6ef6;--purple-dim:#2d2550;--purple-light:#a99ff8;
+  --green:#3ecf8e;--red:#f87171;--amber:#f9a840;
+  --radius:10px;--radius-sm:6px;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;min-height:100vh}
+.app{max-width:720px;margin:0 auto;padding:2rem 1.25rem 4rem}
+
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;padding-bottom:1.25rem;border-bottom:0.5px solid var(--border)}
+.header-left h1{font-size:16px;font-weight:600;color:var(--text);letter-spacing:-.01em}
+.header-left p{font-size:12px;color:var(--muted);margin-top:2px}
+.date-chip{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:4px 10px}
+
+.label{font-size:10px;font-weight:600;color:var(--hint);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:6px;margin-bottom:1.75rem}
+.badge-btn{padding:9px 12px;font-size:12px;font-family:'Inter',sans-serif;border:0.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--muted);cursor:pointer;text-align:left;line-height:1.35;transition:all .15s;word-break:break-word}
+.badge-btn:hover{border-color:var(--border2);color:var(--text)}
+.badge-btn.active{background:var(--purple-dim);border-color:var(--purple);color:var(--purple-light);font-weight:500}
+.badge-prefix{display:block;font-size:10px;color:var(--hint);margin-bottom:2px;font-family:'JetBrains Mono',monospace}
+.badge-btn.active .badge-prefix{color:var(--purple)}
+
+.timer-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem}
+.timer-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem}
+.chip{font-size:11px;font-family:'JetBrains Mono',monospace;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:3px 9px;color:var(--muted)}
+.chip strong{color:var(--text);font-weight:500}
+.timer-display{font-size:52px;font-weight:500;font-family:'JetBrains Mono',monospace;color:var(--text);letter-spacing:-.02em;line-height:1;margin-bottom:1.25rem;transition:color .2s}
+.timer-display.running{color:var(--purple-light)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;font-size:13px;font-family:'Inter',sans-serif;font-weight:500;border-radius:var(--radius-sm);cursor:pointer;border:none;transition:opacity .15s,transform .1s}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--purple);color:#fff}
+.btn-primary:hover{opacity:.88}
+.btn-danger{background:transparent;color:var(--red);border:0.5px solid var(--red)}
+.btn-danger:hover{background:rgba(248,113,113,.08)}
+.btn-ghost{background:transparent;color:var(--muted);border:0.5px solid var(--border)}
+.btn-ghost:hover{color:var(--text);border-color:var(--border2)}
+.btn:disabled{opacity:.3;pointer-events:none}
+.kbd{display:inline-block;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--hint);background:var(--surface2);border:0.5px solid var(--border);border-radius:4px;padding:1px 5px;margin-left:4px;vertical-align:middle}
+
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.75rem}
+.stat{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:.875rem 1rem}
+.stat-label{font-size:10px;color:var(--hint);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.stat-value{font-size:22px;font-weight:500;font-family:'JetBrains Mono',monospace;color:var(--text)}
+.stat-sub{font-size:10px;color:var(--hint);margin-top:3px}
+
+.log-section{margin-bottom:1.75rem}
+.log-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.log-header-left{display:flex;align-items:center;gap:12px}
+.log-count{font-size:11px;color:var(--hint)}
+.btn-reset{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:11px;font-family:'Inter',sans-serif;color:var(--hint);background:transparent;border:0.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:color .15s,border-color .15s}
+.btn-reset:hover{color:var(--red);border-color:var(--red)}
+.log-table{width:100%;border-collapse:collapse}
+.log-table th{text-align:left;padding:6px 10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--hint);border-bottom:0.5px solid var(--border)}
+.log-table td{padding:8px 10px;border-bottom:0.5px solid var(--border);color:var(--muted);font-size:12px;vertical-align:middle}
+.log-table td:first-child{color:var(--text)}
+.log-table tr:last-child td{border-bottom:none}
+.fila-tag{display:inline-block;padding:2px 8px;background:var(--purple-dim);color:var(--purple-light);border-radius:4px;font-size:11px;font-family:'JetBrains Mono',monospace;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ts-highlight{font-family:'JetBrains Mono',monospace;font-weight:500;color:var(--text)}
+.empty{text-align:center;padding:2rem;color:var(--hint);font-size:13px;border:0.5px dashed var(--border);border-radius:var(--radius-sm)}
+
+.chart-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.75rem}
+.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.chart-tabs{display:flex;gap:4px}
+.tab{padding:4px 12px;font-size:11px;font-weight:500;border:0.5px solid var(--border);border-radius:var(--radius-sm);background:transparent;color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.tab.active{background:var(--purple-dim);border-color:var(--purple);color:var(--purple-light)}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--radius);padding:1.5rem;width:360px;max-width:90vw}
+.modal h3{font-size:15px;font-weight:500;margin-bottom:8px}
+.modal p{font-size:13px;color:var(--muted);margin-bottom:1.25rem;line-height:1.6}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end}
+
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--surface2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);padding:10px 16px;font-size:12px;color:var(--text);opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none;z-index:100}
+.toast.show{opacity:1;transform:translateY(0)}
+
+@media(max-width:520px){
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .timer-display{font-size:40px}
+  .badge-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="header-left">
+      <h1>quality timer <span style="color:var(--hint);font-weight:400">(pack)</span></h1>
+      <p>ID — monitorias · dados salvos localmente</p>
+    </div>
+    <div class="date-chip" id="dateChip"></div>
+  </div>
+
+  <div class="label">badge ativa</div>
+  <div class="badge-grid" id="badgeGrid"></div>
+
+  <div class="timer-card">
+    <div class="timer-meta">
+      <div class="chip">slot <strong id="slotDisplay">—</strong></div>
+      <div class="chip">badge <strong id="activeBadgeLabel">nenhuma selecionada</strong></div>
+    </div>
+    <div class="timer-display" id="timerDisplay">00:00:00</div>
+    <div class="controls">
+      <button class="btn btn-primary" id="btnStart" onclick="startTimer()" disabled>
+        <i class="ti ti-player-play"></i> iniciar <span class="kbd">space ↑</span>
+      </button>
+      <button class="btn btn-danger" id="btnStop" onclick="stopTimer()" disabled>
+        <i class="ti ti-player-pause"></i> parar e registrar <span class="kbd">space ↓</span>
+      </button>
+      <button class="btn btn-ghost" id="btnCancel" onclick="cancelTimer()" disabled>
+        cancelar <span class="kbd">esc</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat"><div class="stat-label">casos hoje</div><div class="stat-value" id="statCases">0</div><div class="stat-sub">registros</div></div>
+    <div class="stat"><div class="stat-label">TS hoje</div><div class="stat-value" id="statTs">0m</div><div class="stat-sub">acumulado</div></div>
+    <div class="stat"><div class="stat-label">média/caso</div><div class="stat-value" id="statAvg">—</div><div class="stat-sub">minutos</div></div>
+    <div class="stat"><div class="stat-label">última fila</div><div class="stat-value" style="font-size:13px;padding-top:4px" id="statLast">—</div><div class="stat-sub">&nbsp;</div></div>
+  </div>
+
+  <div class="log-section">
+    <div class="log-header">
+      <div class="log-header-left">
+        <div class="label" style="margin-bottom:0">registros de hoje</div>
+        <span class="log-count" id="logCount">0 entradas</span>
+      </div>
+      <button class="btn-reset" onclick="confirmReset()"><i class="ti ti-trash" style="font-size:12px"></i> zerar dia</button>
+    </div>
+    <div id="logWrap"><div class="empty">nenhum registro ainda hoje</div></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-header">
+      <div class="label" style="margin-bottom:0">TS acumulado</div>
+      <div class="chart-tabs">
+        <button class="tab active" onclick="switchTab('fila',this)">por fila</button>
+        <button class="tab" onclick="switchTab('semana',this)">por semana</button>
+      </div>
+    </div>
+    <div id="chartArea"><div class="empty">os gráficos aparecem após o primeiro registro</div></div>
+  </div>
+
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3>zerar registros de hoje?</h3>
+    <p>Os registros locais do dia serão apagados permanentemente.</p>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" style="padding:7px 16px;font-size:13px" onclick="closeModal()">cancelar</button>
+      <button class="btn btn-danger" style="padding:7px 16px;font-size:13px" onclick="resetDay()">zerar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const FILAS = [
+  'data-labeling-hsp-id-catchandrelease',
+  'data-labeling-hsp-id-fraudadoresearquivados',
+  'data-labeling-hsp-id-prejob',
+  'data-labeling-hsp-id-inconclusivos',
+  'data-labeling-id-amostra-decision',
+  'data-labeling-id-deep-dive-reversed-cases',
+  'data-labeling-id-catch-and-release'
+];
+const SHORT = {
+  'data-labeling-hsp-id-catchandrelease':     'catch & release',
+  'data-labeling-hsp-id-fraudadoresearquivados':'fraudadores arq.',
+  'data-labeling-hsp-id-prejob':              'pre-job',
+  'data-labeling-hsp-id-inconclusivos':       'inconclusivos',
+  'data-labeling-id-amostra-decision':        'amostra decision',
+  'data-labeling-id-deep-dive-reversed-cases':'deep dive reversed',
+  'data-labeling-id-catch-and-release':       'catch & release (id)'
+};
+const PREFIX = {
+  'data-labeling-hsp-id-catchandrelease':     'hsp-id',
+  'data-labeling-hsp-id-fraudadoresearquivados':'hsp-id',
+  'data-labeling-hsp-id-prejob':              'hsp-id',
+  'data-labeling-hsp-id-inconclusivos':       'hsp-id',
+  'data-labeling-id-amostra-decision':        'id',
+  'data-labeling-id-deep-dive-reversed-cases':'id',
+  'data-labeling-id-catch-and-release':       'id'
+};
+const COLORS = ['#7b6ef6','#3ecf8e','#f9a840','#f87171','#60a5fa','#a78bfa','#34d399'];
+
+// chave única por usuário baseada no hostname para não conflitar entre instâncias
+const KEY_BADGE = 'qm_pack_badge';
+const KEY_LOGS  = 'qm_pack_logs';
+
+let activeBadge = localStorage.getItem(KEY_BADGE) || null;
+let timerInterval = null;
+let startTime = null;
+let startSlot = null;
+let elapsed = 0;
+let logs = JSON.parse(localStorage.getItem(KEY_LOGS) || '[]');
+let charts = {};
+let currentTab = 'fila';
+let spaceHeld = false;
+
+function getSlot(d) {
+  const h = d.getHours(), m = d.getMinutes();
+  return `${String(h).padStart(2,'0')}:${m < 30 ? '00' : '30'}`;
+}
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function getWeek(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  const jan4 = new Date(d.getFullYear(), 0, 4);
+  const w = Math.ceil(((d - jan4) / 86400000 + jan4.getDay() + 1) / 7);
+  return `${d.getFullYear()}-W${String(w).padStart(2,'0')}`;
+}
+function fmtTime(sec) {
+  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+function updateDateChip() {
+  const d = new Date();
+  const days = ['dom','seg','ter','qua','qui','sex','sáb'];
+  document.getElementById('dateChip').textContent =
+    `${days[d.getDay()]} ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+function renderBadges() {
+  document.getElementById('badgeGrid').innerHTML = FILAS.map(f => `
+    <button class="badge-btn${activeBadge===f?' active':''}" onclick="selectBadge('${f}')">
+      <span class="badge-prefix">${PREFIX[f]}</span>${SHORT[f]}
+    </button>`).join('');
+}
+function selectBadge(f) {
+  activeBadge = f;
+  localStorage.setItem(KEY_BADGE, f);
+  renderBadges();
+  document.getElementById('activeBadgeLabel').textContent = SHORT[f];
+  if (!timerInterval) document.getElementById('btnStart').disabled = false;
+}
+
+function startTimer() {
+  if (!activeBadge || timerInterval) return;
+  startTime = new Date();
+  startSlot = getSlot(startTime);
+  elapsed = 0;
+  document.getElementById('slotDisplay').textContent = startSlot;
+  document.getElementById('timerDisplay').classList.add('running');
+  document.getElementById('btnStart').disabled = true;
+  document.getElementById('btnStop').disabled = false;
+  document.getElementById('btnCancel').disabled = false;
+  timerInterval = setInterval(() => {
+    elapsed = Math.floor((Date.now() - startTime) / 1000);
+    document.getElementById('timerDisplay').textContent = fmtTime(elapsed);
+  }, 500);
+}
+function cancelTimer() {
+  if (!timerInterval) return;
+  clearInterval(timerInterval); timerInterval = null;
+  elapsed = 0; startTime = null;
+  document.getElementById('timerDisplay').textContent = '00:00:00';
+  document.getElementById('timerDisplay').classList.remove('running');
+  document.getElementById('btnStop').disabled = true;
+  document.getElementById('btnCancel').disabled = true;
+  document.getElementById('btnStart').disabled = !activeBadge;
+}
+function stopTimer() {
+  if (!timerInterval) return;
+  clearInterval(timerInterval); timerInterval = null;
+  const sec = Math.floor((Date.now() - startTime) / 1000);
+  const entry = {
+    date: todayKey(),
+    slot: startSlot,
+    fila: activeBadge,
+    duration_sec: sec,
+    ts_min: parseFloat((sec/60).toFixed(2)),
+    recorded_at: new Date().toISOString()
+  };
+  logs.push(entry);
+  localStorage.setItem(KEY_LOGS, JSON.stringify(logs));
+  document.getElementById('timerDisplay').textContent = '00:00:00';
+  document.getElementById('timerDisplay').classList.remove('running');
+  document.getElementById('btnStop').disabled = true;
+  document.getElementById('btnCancel').disabled = true;
+  document.getElementById('btnStart').disabled = !activeBadge;
+  renderStats(); renderLog(); renderCharts();
+  showToast(`registrado — ${fmtTime(sec)}`);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.code === 'Space') { e.preventDefault(); spaceHeld = true; }
+  if (spaceHeld && e.code === 'ArrowUp') { e.preventDefault(); if (!timerInterval && activeBadge) startTimer(); }
+  if (spaceHeld && e.code === 'ArrowDown') { e.preventDefault(); if (timerInterval) stopTimer(); }
+  if (e.code === 'Escape') { if (timerInterval) cancelTimer(); closeModal(); }
+});
+document.addEventListener('keyup', e => { if (e.code === 'Space') spaceHeld = false; });
+
+function confirmReset() { document.getElementById('modalOverlay').classList.add('show'); }
+function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+function resetDay() {
+  logs = logs.filter(l => l.date !== todayKey());
+  localStorage.setItem(KEY_LOGS, JSON.stringify(logs));
+  closeModal();
+  renderStats(); renderLog(); renderCharts();
+  showToast('registros do dia zerados');
+}
+
+function todayLogs() { return logs.filter(l => l.date === todayKey()); }
+
+function renderStats() {
+  const tl = todayLogs();
+  const total = tl.reduce((a,l) => a + l.duration_sec, 0);
+  document.getElementById('statCases').textContent = tl.length;
+  document.getElementById('statTs').textContent =
+    total < 60 ? `${total}s` : total < 3600 ? `${Math.round(total/60)}m` : `${(total/3600).toFixed(1)}h`;
+  document.getElementById('statAvg').textContent = tl.length ? `${(total/60/tl.length).toFixed(1)}` : '—';
+  const last = tl[tl.length-1];
+  document.getElementById('statLast').textContent = last ? SHORT[last.fila] : '—';
+}
+
+function renderLog() {
+  const tl = todayLogs();
+  document.getElementById('logCount').textContent = `${tl.length} ${tl.length===1?'entrada':'entradas'}`;
+  if (!tl.length) {
+    document.getElementById('logWrap').innerHTML = '<div class="empty">nenhum registro ainda hoje</div>';
+    return;
+  }
+  const rows = [...tl].reverse().map((l,i,arr) => {
+    const tsClass = l.duration_sec < 60 ? 'color:var(--amber)' : l.duration_sec > 600 ? 'color:var(--red)' : 'color:var(--green)';
+    return `<tr>
+      <td><span class="fila-tag">${SHORT[l.fila]}</span></td>
+      <td style="font-family:'JetBrains Mono',monospace">${l.slot}</td>
+      <td style="font-family:'JetBrains Mono',monospace;${tsClass};font-weight:500">${fmtTime(l.duration_sec)}</td>
+      <td style="font-family:'JetBrains Mono',monospace">${l.ts_min.toFixed(1)}min</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('logWrap').innerHTML = `
+    <table class="log-table">
+      <thead><tr><th>fila</th><th>slot</th><th>duração</th><th>TS</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function switchTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCharts();
+}
+function renderCharts() {
+  const area = document.getElementById('chartArea');
+  if (!logs.length) { area.innerHTML = '<div class="empty">os gráficos aparecem após o primeiro registro</div>'; return; }
+  if (currentTab === 'fila') renderFilaChart(area);
+  else renderSemanaChart(area);
+}
+function renderFilaChart(area) {
+  const tl = todayLogs();
+  const totals = {}; FILAS.forEach(f => totals[f] = 0);
+  tl.forEach(l => totals[l.fila] = (totals[l.fila]||0) + l.ts_min);
+  area.innerHTML = `<div style="position:relative;width:100%;height:${FILAS.length*44+40}px"><canvas id="cFila"></canvas></div>`;
+  if (charts.fila) charts.fila.destroy();
+  charts.fila = new Chart(document.getElementById('cFila'), {
+    type: 'bar',
+    data: { labels: FILAS.map(f => SHORT[f]), datasets: [{ data: FILAS.map(f => parseFloat(totals[f].toFixed(1))), backgroundColor: COLORS, borderRadius: 4, borderSkipped: false }] },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.raw} min` } } },
+      scales: { x: { grid: { color: 'rgba(123,110,246,.1)' }, ticks: { color: '#55556a', font: { size: 11 }, callback: v => `${v}m` } }, y: { grid: { display: false }, ticks: { color: '#8888a0', font: { size: 11 } } } }
+    }
+  });
+}
+function renderSemanaChart(area) {
+  const byWeek = {};
+  logs.forEach(l => {
+    const w = getWeek(l.date);
+    if (!byWeek[w]) byWeek[w] = {};
+    byWeek[w][l.fila] = (byWeek[w][l.fila]||0) + l.ts_min;
+  });
+  const weeks = Object.keys(byWeek).sort();
+  if (!weeks.length) { area.innerHTML = '<div class="empty">sem dados semanais ainda</div>'; return; }
+  area.innerHTML = `<div style="position:relative;width:100%;height:240px"><canvas id="cSemana"></canvas></div>`;
+  if (charts.semana) charts.semana.destroy();
+  charts.semana = new Chart(document.getElementById('cSemana'), {
+    type: 'bar',
+    data: { labels: weeks, datasets: FILAS.map((f,i) => ({ label: SHORT[f], data: weeks.map(w => parseFloat((byWeek[w]?.[f]||0).toFixed(1))), backgroundColor: COLORS[i], borderRadius: 3, borderSkipped: false })) },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { stacked: true, grid: { display: false }, ticks: { color: '#55556a', font: { size: 11 } } }, y: { stacked: true, grid: { color: 'rgba(123,110,246,.1)' }, ticks: { color: '#55556a', font: { size: 11 }, callback: v => `${v}m` } } }
+    }
+  });
+}
+
+if (activeBadge) {
+  document.getElementById('activeBadgeLabel').textContent = SHORT[activeBadge] || activeBadge;
+  document.getElementById('btnStart').disabled = false;
+}
+updateDateChip();
+setInterval(updateDateChip, 60000);
+renderBadges();
+renderStats();
+renderLog();
+renderCharts();
+</script>
+</body>
+</html>
