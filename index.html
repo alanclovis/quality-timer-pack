@@ -143,7 +143,10 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
         <div class="label" style="margin-bottom:0">registros de hoje</div>
         <span class="log-count" id="logCount">0 entradas</span>
       </div>
-      <button class="btn-reset" onclick="confirmReset()"><i class="ti ti-trash" style="font-size:12px"></i> zerar dia</button>
+      <div style="display:flex;gap:6px">
+        <button class="btn-reset" onclick="openAddOne()" style="color:var(--purple-light);border-color:var(--purple-dim)"><i class="ti ti-plus" style="font-size:12px"></i> +1 registro</button>
+        <button class="btn-reset" onclick="confirmReset()"><i class="ti ti-trash" style="font-size:12px"></i> zerar dia</button>
+      </div>
     </div>
     <div id="logWrap"><div class="empty">nenhum registro ainda hoje</div></div>
   </div>
@@ -159,6 +162,50 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
     <div id="chartArea"><div class="empty">os gráficos aparecem após o primeiro registro</div></div>
   </div>
 
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.75rem">
+    <button class="btn btn-ghost" onclick="exportCSV('today')" style="flex:1;justify-content:center">
+      <i class="ti ti-table-export"></i> exportar hoje (.csv)
+    </button>
+    <button class="btn btn-ghost" onclick="exportCSV('all')" style="flex:1;justify-content:center">
+      <i class="ti ti-database-export"></i> exportar tudo (.csv)
+    </button>
+  </div>
+
+</div>
+
+<!-- +1 modal -->
+<div class="modal-overlay" id="addOneModal">
+  <div class="modal" style="width:400px">
+    <h3>adicionar registro manual</h3>
+    <p style="margin-bottom:1rem">Qual fila e quanto tempo durou essa monitoria?</p>
+    <div style="margin-bottom:12px">
+      <div class="label" style="margin-bottom:6px">fila</div>
+      <select id="addOneFila" style="width:100%;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text);outline:none;cursor:pointer">
+        <option value="">selecione a fila...</option>
+      </select>
+    </div>
+    <div style="margin-bottom:12px">
+      <div class="label" style="margin-bottom:6px">tempo gasto</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="number" id="addOneMin" style="width:80px;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:8px;font-size:18px;text-align:center;font-family:'JetBrains Mono',monospace;color:var(--text);outline:none" min="0" value="2">
+        <span style="color:var(--muted);font-size:13px">min</span>
+        <input type="number" id="addOneSec" style="width:80px;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:8px;font-size:18px;text-align:center;font-family:'JetBrains Mono',monospace;color:var(--text);outline:none" min="0" max="59" value="0">
+        <span style="color:var(--muted);font-size:13px">seg</span>
+      </div>
+      <div style="font-size:10px;color:var(--hint);margin-top:6px">atalhos rápidos:</div>
+      <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+        <button class="btn-reset" onclick="setAddOneTime(1,0)" style="font-size:11px;padding:3px 10px">1min</button>
+        <button class="btn-reset" onclick="setAddOneTime(2,0)" style="font-size:11px;padding:3px 10px">2min</button>
+        <button class="btn-reset" onclick="setAddOneTime(3,0)" style="font-size:11px;padding:3px 10px">3min</button>
+        <button class="btn-reset" onclick="setAddOneTime(5,0)" style="font-size:11px;padding:3px 10px">5min</button>
+        <button class="btn-reset" onclick="setAddOneTime(10,0)" style="font-size:11px;padding:3px 10px">10min</button>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" style="padding:7px 16px;font-size:13px" onclick="closeAddOne()">cancelar</button>
+      <button class="btn btn-primary" style="padding:7px 16px;font-size:13px" onclick="confirmAddOne()"><i class="ti ti-plus"></i> registrar</button>
+    </div>
+  </div>
 </div>
 
 <div class="modal-overlay" id="modalOverlay">
@@ -413,6 +460,62 @@ function renderSemanaChart(area) {
       scales: { x: { stacked: true, grid: { display: false }, ticks: { color: '#55556a', font: { size: 11 } } }, y: { stacked: true, grid: { color: 'rgba(123,110,246,.1)' }, ticks: { color: '#55556a', font: { size: 11 }, callback: v => `${v}m` } } }
     }
   });
+}
+
+function openAddOne() {
+  const sel = document.getElementById('addOneFila');
+  sel.innerHTML = '<option value="">selecione a fila...</option>';
+  FILAS.forEach(f => {
+    const opt = document.createElement('option');
+    opt.value = f; opt.textContent = SHORT[f];
+    if (f === activeBadge) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  document.getElementById('addOneMin').value = 2;
+  document.getElementById('addOneSec').value = 0;
+  document.getElementById('addOneModal').classList.add('show');
+}
+function closeAddOne() {
+  document.getElementById('addOneModal').classList.remove('show');
+}
+function setAddOneTime(min, sec) {
+  document.getElementById('addOneMin').value = min;
+  document.getElementById('addOneSec').value = sec;
+}
+function confirmAddOne() {
+  const fila = document.getElementById('addOneFila').value;
+  const min = parseInt(document.getElementById('addOneMin').value) || 0;
+  const sec = parseInt(document.getElementById('addOneSec').value) || 0;
+  const totalSec = min * 60 + sec;
+  if (!fila) { showToast('selecione uma fila'); return; }
+  if (totalSec <= 0) { showToast('informe um tempo válido'); return; }
+  const entry = {
+    date: todayKey(), slot: getSlot(new Date()),
+    fila, duration_sec: totalSec,
+    ts_min: parseFloat((totalSec/60).toFixed(2)),
+    recorded_at: new Date().toISOString(), manual: true
+  };
+  logs.push(entry);
+  localStorage.setItem(KEY_LOGS, JSON.stringify(logs));
+  closeAddOne();
+  renderStats(); renderLog(); renderCharts();
+  showToast(`+1 registrado — ${min}min${sec > 0 ? ' '+sec+'s' : ''}`);
+}
+function exportCSV(scope) {
+  const data = scope === 'today' ? logs.filter(l => l.date === todayKey()) : logs;
+  if (!data.length) { showToast('nenhum dado para exportar'); return; }
+  const headers = ['data','slot','fila','duracao_seg','ts_min','registrado_em','manual'];
+  const rows = data.map(l => headers.map(h => {
+    const v = l[h] !== undefined ? l[h] : '';
+    return typeof v === 'string' && v.includes(',') ? `"${v}"` : v;
+  }).join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `quality-timer-pack-${scope === 'today' ? todayKey() : 'completo'}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('CSV exportado');
 }
 
 if (activeBadge) {
